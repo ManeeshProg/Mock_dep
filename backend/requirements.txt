@@ -8,7 +8,7 @@ google-generativeai==0.7.2
 numpy==1.26.4
 python-dotenv==1.0.0
 reportlab==3.6.12
-python-docx==0.8.12
+python-docx==1.1.2
 sarvamai==0.1.7
 speechrecognition==3.10.0
 httpx==0.24.1
