@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Upload, FileText, ArrowLeft, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { uploadResumeExtract } from "@/lib/api";
@@ -22,11 +21,13 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
   const { toast } = useToast();
 
   const handleFileUpload = async (file: File) => {
-    if (file.type !== "application/pdf") {
+    console.log("🔥 handleFileUpload triggered:", file);
+
+    if (!file.type || !file.type.includes("pdf")) {
       toast({
         title: "Invalid file type",
         description: "Please upload a PDF file",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -37,18 +38,22 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
     try {
       const id = crypto.randomUUID();
       setSessionId(id);
+
+      console.log("📡 Calling backend /extract...");
       const result = await uploadResumeExtract(id, file);
-      // Backend indexes chunks; we don't need full text in FE any more
+
       setResumeContent(`Indexed ${result.chunks_indexed} chunks for session ${id}`);
+
       toast({
         title: "Resume processed successfully",
-        description: `Analyzed and indexed (${result.chunks_indexed} chunks)`
+        description: `Analyzed and indexed (${result.chunks_indexed} chunks)`,
       });
     } catch (error) {
+      console.error("❌ Upload error:", error);
       toast({
         title: "Error processing resume",
         description: "Please try uploading again",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsProcessing(false);
@@ -60,7 +65,7 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
       toast({
         title: "Resume required",
         description: "Please upload your resume",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -71,7 +76,7 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
-        <Button 
+        <Button
           onClick={onBack}
           variant="ghost"
           className="mb-6 text-foreground/80 hover:text-foreground hover:bg-primary/10"
@@ -91,7 +96,7 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
               Upload Your Resume
             </h2>
             <p className="text-foreground/70 leading-relaxed">
-              Hello <span className="text-primary font-semibold">{candidateName}</span>! 
+              Hello <span className="text-primary font-semibold">{candidateName}</span>!
               Upload your resume for the <span className="text-accent font-semibold">{role}</span> position.
               Our AI will analyze it to create personalized interview questions.
             </p>
@@ -99,45 +104,42 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
 
           <div className="space-y-6">
             <div>
-              <label className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">
-                Resume (PDF)
-              </label>
-              <div 
-                className="border-2 border-dashed border-primary/30 rounded-xl p-8 text-center hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 cursor-pointer group"
-                onClick={() => fileInputRef.current?.click()}
+              <label className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Resume (PDF)</label>
+
+              <div
+                className="relative border-2 border-dashed border-primary/30 rounded-xl p-8 text-center hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 cursor-pointer group"
+                onClick={() => {
+                  console.log("📂 Upload box clicked");
+                  fileInputRef.current?.click();
+                }}
               >
+                {/* FIX: File input must NOT be hidden — use opacity: 0 */}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept=".pdf"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  style={{ width: "100%", height: "100%" }}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
+                    console.log("📁 File selected:", file);
                     if (file) handleFileUpload(file);
                   }}
-                  className="hidden"
                 />
-                
+
                 {resumeFile ? (
                   <div className="flex items-center justify-center space-x-3">
                     <CheckCircle className="w-10 h-10 text-primary" />
                     <div className="text-left">
-                      <span className="text-foreground font-semibold block">
-                        {resumeFile.name}
-                      </span>
-                      <span className="text-accent text-sm">
-                        Ready for analysis
-                      </span>
+                      <span className="text-foreground font-semibold block">{resumeFile.name}</span>
+                      <span className="text-accent text-sm">Ready for analysis</span>
                     </div>
                   </div>
                 ) : (
                   <div>
                     <Upload className="w-16 h-16 text-primary/60 mx-auto mb-4 group-hover:text-primary transition-colors" />
-                    <p className="text-foreground/80 mb-2 font-medium">
-                      Click to upload your resume
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      PDF files only, max 10MB
-                    </p>
+                    <p className="text-foreground/80 mb-2 font-medium">Click to upload your resume</p>
+                    <p className="text-sm text-muted-foreground">PDF files only, max 10MB</p>
                   </div>
                 )}
               </div>
