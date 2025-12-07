@@ -1,5 +1,5 @@
 // Resolve backend URL: prefer env var, else default to http://localhost:8000 for dev
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://13.126.56.88:8000";
 
 export async function uploadResumeExtract(sessionId: string, file: File) {
 	const form = new FormData();
@@ -33,7 +33,7 @@ export async function fetchHrQuestions(sessionId: string) {
 	return resp.json();
 }
 
-export async function evaluateInterview(sessionId: string, role: string, technicalAnswers: Array<{question: string; answer: string}>, hrAnswers: Array<{question: string; answer: string}>) {
+export async function evaluateInterview(sessionId: string, role: string, technicalAnswers: Array<{ question: string; answer: string }>, hrAnswers: Array<{ question: string; answer: string }>) {
 	const resp = await fetch(`${BACKEND_URL}/evaluate`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
