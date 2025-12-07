@@ -12,6 +12,15 @@ interface ResumeUploadProps {
   onBack: () => void;
 }
 
+// 🔥 UUID fallback generator (replaces crypto.randomUUID)
+function generateUUID() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUploadProps) => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeContent, setResumeContent] = useState("");
@@ -21,7 +30,7 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
   const { toast } = useToast();
 
   const handleFileUpload = async (file: File) => {
-    console.log("🔥 handleFileUpload triggered:", file);
+    console.log("🔥 handleFileUpload triggered with:", file);
 
     if (!file.type || !file.type.includes("pdf")) {
       toast({
@@ -36,10 +45,10 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
     setIsProcessing(true);
 
     try {
-      const id = crypto.randomUUID();
+      const id = generateUUID(); // fixed UUID
       setSessionId(id);
 
-      console.log("📡 Calling backend /extract...");
+      console.log("📡 Sending request to backend /extract…");
       const result = await uploadResumeExtract(id, file);
 
       setResumeContent(`Indexed ${result.chunks_indexed} chunks for session ${id}`);
@@ -69,13 +78,13 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
       });
       return;
     }
-
     onNext({ resumeContent, sessionId });
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
+
         <Button
           onClick={onBack}
           variant="ghost"
@@ -96,7 +105,7 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
               Upload Your Resume
             </h2>
             <p className="text-foreground/70 leading-relaxed">
-              Hello <span className="text-primary font-semibold">{candidateName}</span>!
+              Hello <span className="text-primary font-semibold">{candidateName}</span>! 
               Upload your resume for the <span className="text-accent font-semibold">{role}</span> position.
               Our AI will analyze it to create personalized interview questions.
             </p>
@@ -104,8 +113,11 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
 
           <div className="space-y-6">
             <div>
-              <label className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Resume (PDF)</label>
+              <label className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">
+                Resume (PDF)
+              </label>
 
+              {/* Upload Box */}
               <div
                 className="relative border-2 border-dashed border-primary/30 rounded-xl p-8 text-center hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 cursor-pointer group"
                 onClick={() => {
@@ -113,7 +125,7 @@ export const ResumeUpload = ({ candidateName, role, onNext, onBack }: ResumeUplo
                   fileInputRef.current?.click();
                 }}
               >
-                {/* FIX: File input must NOT be hidden — use opacity: 0 */}
+                {/* FIX: Input must NOT be hidden — use opacity:0 */}
                 <input
                   ref={fileInputRef}
                   type="file"
